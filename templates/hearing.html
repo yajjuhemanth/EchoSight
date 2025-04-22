@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hearing Mode - EchoSight</title>
+    <link rel="icon" type="image/png" href="static/assets/image.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js"></script>
+
+    <style>
+        /* Theme Variables and Base Styles (remain same as previous dark mode version) */
+        :root {
+            --bg-color-light: linear-gradient(to bottom right, #e0eafc, #cfdef3);
+            --text-color-light: #333; --card-bg-light: rgba(255, 255, 255, 0.3);
+            --border-color-light: rgba(0, 0, 0, 0.1); --heading-color-light: #2c3e50;
+            --control-bg-light: rgba(255, 255, 255, 0.2); --button-back-bg-light: #adb5bd;
+            --button-back-border-light: #adb5bd; --button-back-hover-bg-light: #9fa8b0;
+            --button-back-hover-border-light: #9fa8b0;
+
+            --bg-color-dark: linear-gradient(to bottom right, #34495e, #2c3e50);
+            --text-color-dark: #ecf0f1; --card-bg-dark: rgba(0, 0, 0, 0.25);
+            --border-color-dark: rgba(255, 255, 255, 0.1); --heading-color-dark: #e0e0e0;
+            --control-bg-dark: rgba(0, 0, 0, 0.15); --button-back-bg-dark: #7f8c8d;
+            --button-back-border-dark: #7f8c8d; --button-back-hover-bg-dark: #95a5a6;
+            --button-back-hover-border-dark: #95a5a6;
+
+            /* Default to light mode */
+            --bg-color: var(--bg-color-light); --text-color: var(--text-color-light);
+            --card-bg: var(--card-bg-light); --border-color: var(--border-color-light);
+            --heading-color: var(--heading-color-light); --control-bg: var(--control-bg-light);
+            --button-back-bg: var(--button-back-bg-light); --button-back-border: var(--button-back-border-light);
+            --button-back-hover-bg: var(--button-back-hover-bg-light); --button-back-hover-border: var(--button-back-hover-border-light);
+        }
+        body.dark-mode {
+            --bg-color: var(--bg-color-dark); --text-color: var(--text-color-dark);
+            --card-bg: var(--card-bg-dark); --border-color: var(--border-color-dark);
+            --heading-color: var(--heading-color-dark); --control-bg: var(--control-bg-dark);
+            --button-back-bg: var(--button-back-bg-dark); --button-back-border: var(--button-back-border-dark);
+            --button-back-hover-bg: var(--button-back-hover-bg-dark); --button-back-hover-border: var(--button-back-hover-border-dark);
+        }
+        html, body { height: 100%; margin: 0; overflow: hidden; }
+        body { background: var(--bg-color); color: var(--text-color); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; height: 100%; transition: background 0.3s ease, color 0.3s ease; }
+
+        /* UPDATED HEADER AREA STYLES */
+        .header-area {
+            flex-shrink: 0;
+            padding: 0.8rem 1rem; /* Use padding for spacing */
+            position: relative; /* Keep for original toggle positioning on larger screens */
+            width: 100%; /* Ensure it takes full width */
+            box-sizing: border-box; /* Include padding in width calculation */
+        }
+        .header-area h1 {
+            color: var(--heading-color);
+            font-size: 1.8rem;
+            text-align: center; /* Center by default */
+            margin-bottom: 0; /* Remove default margin */
+        }
+        .header-area .theme-toggle {
+            position: absolute; /* Default absolute positioning */
+            top: 10px;
+            right: 20px;
+            z-index: 5;
+        }
+        /* END UPDATED HEADER AREA STYLES */
+
+        .controls-area { flex-shrink: 0; padding-bottom: 0.8rem; }
+        .main-content { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; padding: 0 1rem 1rem 1rem; }
+        #transcript { background: var(--card-bg); padding: 20px 25px; border-radius: 10px; font-size: 1.5rem; line-height: 1.6; font-family: 'Arial', sans-serif; transition: color 0.3s ease, font-size 0.3s ease, font-family 0.3s ease, background 0.3s ease; border: 1px solid var(--border-color); box-shadow: inset 0 2px 10px rgba(0,0,0,0.1); white-space: pre-wrap; word-wrap: break-word; flex-grow: 1; overflow-y: auto; color: var(--text-color); }
+        #transcript-stable { display: inline; }
+        #transcript-typing { display: inline; }
+        .typed-cursor { opacity: 1; animation: typedjsBlink 0.7s infinite; color: var(--text-color); font-weight: normal; margin-left: 1px; }
+        @keyframes typedjsBlink { 50% { opacity: 0.0; } }
+
+        /* Responsive Controls */
+        .controls {
+            background: var(--control-bg);
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem; /* Slightly reduce gap */
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem; /* Reduce gap within group */
+            margin-bottom: 0.5rem; /* Add space between groups when wrapped */
+        }
+
+        .controls label { margin: 0 0.3rem 0 0; font-weight: 500; color: var(--text-color); flex-shrink: 0;}
+        .controls .form-select, .controls .form-control-color, .controls .form-range, .controls .btn { border-color: var(--border-color); }
+        .controls .form-select, .controls input { background-color: var(--card-bg); color: var(--text-color); }
+        .controls .form-select, .controls .form-control-color, .controls .form-range { display: inline-block; width: auto; min-width: 80px; vertical-align: middle; padding: 0.25rem 0.5rem; font-size: 0.9rem; }
+        .controls .form-range { max-width: 120px; height: 1.2rem;}
+        .controls .form-control-color { height: 30px; width: 50px; padding: 0.1rem;}
+        #fontSizeValue { margin-left: 0.3rem; font-weight: 500; min-width: 35px; display: inline-block; font-size: 0.9rem; color: var(--text-color); }
+        .action-buttons .btn { margin: 0 0.5rem; min-width: 90px; font-size: 1rem; padding: 0.4rem 1rem;}
+        .footer-area { flex-shrink: 0; padding: 0.8rem 0; text-align: center; }
+        .btn-back { background-color: var(--button-back-bg); border-color: var(--button-back-border); color: white; transition: background-color 0.2s ease; padding: 0.4rem 1rem; font-size: 0.9rem; }
+        .btn-back:hover { background-color: var(--button-back-hover-bg); border-color: var(--button-back-hover-border); color: white; }
+        .form-switch .form-check-label { color: var(--text-color); }
+
+        /* Responsive adjustments for the header */
+        @media (max-width: 576px) {
+            .header-area {
+                display: flex; /* Use flexbox on small screens */
+                justify-content: space-between; /* Push title and toggle apart */
+                align-items: center; /* Vertically align them */
+                padding: 0.5rem 1rem; /* Adjust padding */
+                position: static; /* Override relative positioning if needed */
+            }
+
+            .header-area h1 {
+                text-align: left; /* Align title to the left */
+                font-size: 1.5rem; /* Slightly smaller title */
+                flex-grow: 1; /* Allow title to take available space */
+                margin-right: 0.5rem; /* Add space between title and toggle */
+            }
+
+            .header-area .theme-toggle {
+                position: static; /* Remove absolute positioning */
+                order: 1; /* Ensure toggle is on the right */
+                flex-shrink: 0; /* Prevent toggle from shrinking */
+            }
+
+           /* Adjust controls media query if needed to ensure spacing below new header layout */
+            .controls-area {
+                padding-top: 0.5rem; /* Add a little space below the adjusted header */
+            }
+
+            .controls {
+                flex-direction: column; /* Stack control groups vertically */
+                align-items: stretch; /* Stretch items to fill width */
+                gap: 0.8rem; /* Increase gap for vertical stacking */
+            }
+            .control-group {
+                justify-content: space-between; /* Space out label and input */
+                 margin-bottom: 0.5rem;
+            }
+             .control-group label {
+                 flex-shrink: 0; /* Prevent label from shrinking */
+                 margin-right: 0.5rem;
+             }
+            .controls .form-select,
+            .controls .form-control-color,
+            .controls .form-range {
+                flex-grow: 1; /* Allow inputs to grow */
+                min-width: 60px; /* Adjust min-width */
+                font-size: 0.85rem; /* Smaller font */
+            }
+            .controls .form-range {
+                 max-width: none; /* Allow slider to take more space */
+             }
+            .controls .action-buttons {
+                width: 100%; /* Make button container full width */
+                display: flex;
+                justify-content: space-around; /* Space out buttons */
+            }
+            .controls .action-buttons .btn {
+                flex-grow: 1; /* Allow buttons to grow */
+                margin: 0 0.2rem; /* Adjust margin */
+                 font-size: 0.9rem;
+            }
+            #transcript {
+                font-size: 1.1rem; /* Adjust transcript font size */
+                padding: 10px 15px;
+            }
+        }
+  </style>
+</head>
+<body>
+  <div class="header-area">
+      <h1 class="animate__animated animate__fadeInDown">Hearing Mode</h1>
+      <div class="form-check form-switch theme-toggle">
+          <input class="form-check-input" type="checkbox" role="switch" id="themeSwitch">
+          <label class="form-check-label" for="themeSwitch">Dark Mode</label>
+      </div>
+  </div>
+
+  <div class="controls-area">
+    <div class="controls animate__animated animate__fadeInUp">
+       <div class="control-group"><label for="fontSelector">Font:</label><select id="fontSelector" class="form-select form-select-sm"><option value="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">Segoe UI</option><option value="'Arial', sans-serif">Arial</option><option value="'Verdana', sans-serif">Verdana</option><option value="'Courier New', monospace">Courier New</option><option value="'Times New Roman', serif">Times New Roman</option><option value="'Georgia', serif">Georgia</option></select></div>
+       <div class="control-group"><label for="colorPicker">Color:</label><input type="color" id="colorPicker" value="#333333" class="form-control form-control-color"></div>
+       <div class="control-group"><label for="fontSizeSlider">Size:</label><input type="range" id="fontSizeSlider" min="14" max="48" value="24" class="form-range align-middle"><span id="fontSizeValue">24px</span></div>
+       <div class="action-buttons"><button id="startBtn" class="btn btn-success btn-sm">Start</button><button id="stopBtn" class="btn btn-danger btn-sm">Stop</button></div>
+    </div>
+  </div>
+
+  <div class="main-content">
+      <div id="transcript">
+          <span id="transcript-stable">Press Start to begin transcription...</span>
+          <span id="transcript-typing"></span>
+      </div>
+  </div>
+
+  <div class="footer-area">
+      <a href="/" class="btn btn-back btn-sm">Back to Main</a>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  <script>
+     // JavaScript remains the same as in the file provided
+     $(document).ready(function(){
+        let fetchInterval = null;
+        let currentStableText = ""; // Store only the confirmed, static text
+        const transcriptDiv = $("#transcript");
+        const stableSpan = $("#transcript-stable");
+        const typingSpan = $("#transcript-typing"); // Target for Typed.js
+        const startBtn = $("#startBtn");
+        const stopBtn = $("#stopBtn");
+        let isRunning = false;
+        let typedInstance = null;
+        let isTyping = false; // Flag to prevent overlapping typing calls
+
+        // --- Dark Mode Logic (same as before) ---
+        const themeSwitch = $('#themeSwitch'); /* ... */
+        const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null; if (currentTheme) { $('body').addClass(currentTheme); if (currentTheme === 'dark-mode') { themeSwitch.prop('checked', true); $('#colorPicker').val('#ECF0F1'); } else { $('#colorPicker').val('#333333'); } } else { $('#colorPicker').val('#333333'); }
+        themeSwitch.on('change', function() { if($(this).is(':checked')) { $('body').addClass('dark-mode').removeClass('light-mode'); localStorage.setItem('theme', 'dark-mode'); $('#colorPicker').val('#ECF0F1'); } else { $('body').removeClass('dark-mode').addClass('light-mode'); localStorage.setItem('theme', 'light-mode'); $('#colorPicker').val('#333333'); } applyStyles(); });
+
+        // --- Style Application Logic (same as before) ---
+        function applyStyles() { /* ... same as previous ... */
+            const selectedFont = $("#fontSelector").val(); const selectedColor = $("#colorPicker").val(); const selectedSize = $("#fontSizeSlider").val();
+            transcriptDiv.css({'font-family': selectedFont, 'font-size': selectedSize + 'px', 'color': selectedColor});
+            $("#fontSizeValue").text(selectedSize + 'px');
+            try { const theme = localStorage.getItem('theme') || 'light-mode'; localStorage.setItem('hearingPrefs', JSON.stringify({font: selectedFont, color: selectedColor, size: selectedSize, theme: theme})); } catch (e) { console.warn("LocalStorage save failed:", e); }
+        }
+        try { /* ... Load preferences same as previous ... */
+            const savedPrefs = JSON.parse(localStorage.getItem('hearingPrefs')); const savedTheme = localStorage.getItem('theme'); if (savedPrefs) { $("#fontSelector").val(savedPrefs.font || "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"); $("#fontSizeSlider").val(savedPrefs.size || "24"); if (savedTheme && savedPrefs.theme && savedTheme === savedPrefs.theme) { $("#colorPicker").val(savedPrefs.color); } else { $("#colorPicker").val(savedTheme === 'dark-mode' ? '#ECF0F1' : '#333333'); } }
+        } catch (e) { console.warn("LocalStorage load failed:", e); }
+        applyStyles();
+        $("#fontSelector, #colorPicker, #fontSizeSlider").on('change input', applyStyles);
+
+
+        // --- Typed.js Helper - Animates only the new segment ---
+        function typeNewSegment(segment) {
+            // Prevent starting new typing if already typing
+            if (isTyping || !segment || segment.length === 0) {
+                // If not typing and segment is empty, ensure cursor state is correct
+                 if (!isTyping && isRunning) {
+                     typingSpan.html('<span class="typed-cursor">|</span>'); // Show cursor if running
+                 } else if (!isRunning) {
+                      typingSpan.html(''); // Hide cursor if stopped
+                 }
+                return;
+            }
+
+            isTyping = true; // Set flag
+            if (typedInstance) {
+                // Should not happen if isTyping flag works, but as safety:
+                typedInstance.destroy();
+            }
+            typingSpan.text(''); // Clear the typing area
+
+            typedInstance = new Typed(typingSpan[0], {
+                strings: [segment], // Type only the new part
+                typeSpeed: 40,
+                backSpeed: 0, backDelay: 500, startDelay: 0, loop: false,
+                showCursor: true, cursorChar: '|',
+                contentType: 'text', // Use text for simplicity, handle spaces manually if needed
+                onComplete: (self) => {
+                    // Append the fully typed segment to the stable span
+                    // Add a space if stableSpan isn't empty and segment doesn't start with one
+                    let prefixSpace = (stableSpan.text().length > 0 && segment.charAt(0) !== ' ' && stableSpan.text().slice(-1) !== '\n') ? " " : "";
+                    stableSpan.append(prefixSpace + self.strings[0]);
+                    typingSpan.text(''); // Clear the temporary typing area
+                    self.destroy(); // Destroy this Typed instance
+                    typedInstance = null;
+                    isTyping = false; // Clear flag
+                    // Show cursor statically if still running
+                    if(isRunning) typingSpan.html('<span class="typed-cursor">|</span>');
+                    scrollToBottom();
+                },
+                onStringTyped: (arrayPos, self) => { scrollToBottom(); }, // Scroll as it types
+                onDestroy: () => { isTyping = false; } // Ensure flag is cleared if destroyed externally
+            });
+        }
+
+        function scrollToBottom() { /* ... same scroll logic ... */
+            const scrollThreshold = 50; const isNearBottom = transcriptDiv[0].scrollHeight - transcriptDiv.scrollTop() - transcriptDiv.outerHeight() < scrollThreshold;
+            if (isNearBottom) { transcriptDiv.scrollTop(transcriptDiv[0].scrollHeight); }
+        }
+
+        // --- Button Clicks ---
+        startBtn.click(function(){
+            console.log("Start hearing clicked");
+            startBtn.prop('disabled', true); stopBtn.prop('disabled', false); isRunning = true;
+            currentStableText = ""; // Reset stable text
+            stableSpan.text(""); // Clear display
+            typingSpan.html('<span class="typed-cursor">|</span>'); // Show cursor immediately
+            if (typedInstance) { typedInstance.destroy(); typedInstance = null; isTyping = false; } // Clear any old instance
+
+            $.post("/hearing/start", function(data){
+                console.log("Start response:", data);
+                if (data.status === "started" || data.status === "already_running") {
+                    if (!fetchInterval) { fetchInterval = setInterval(fetchTranscript, 500); }
+                    fetchTranscript(); // Fetch initial "(Waiting for speech...)"
+                } else {
+                    stableSpan.text("Error starting."); typingSpan.text('');
+                    isRunning = false; startBtn.prop('disabled', false); stopBtn.prop('disabled', true);
+                }
+            }).fail(function() {
+                stableSpan.text("Error starting request."); typingSpan.text('');
+                isRunning = false; startBtn.prop('disabled', false); stopBtn.prop('disabled', true);
+            });
+        });
+
+        stopBtn.click(function(){
+            console.log("Stop hearing clicked");
+            stopBtn.prop('disabled', true); startBtn.prop('disabled', false); isRunning = false;
+            if (fetchInterval) { clearInterval(fetchInterval); fetchInterval = null; }
+            if (typedInstance) { typedInstance.destroy(); typedInstance = null; isTyping = false;} // Stop typing
+            // Fetch final state - fetchTranscript will display "Stopped." statically
+            $.post("/hearing/stop", function(data){
+                console.log("Stop response:", data); fetchTranscript();
+            }).fail(function() {
+                stableSpan.text(currentStableText + "\nError stopping."); typingSpan.text('');
+                stopBtn.prop('disabled', false); startBtn.prop('disabled', false); isRunning = true; // Revert state?
+            });
+        });
+
+        // --- Fetch Transcript - Refined for Segment Typing ---
+        function fetchTranscript(){
+            $.get("/hearing/transcript", function(data){
+                const backendTranscript = data.transcript; // Full text from backend
+
+                // Avoid processing if the backend text hasn't changed from the stable text
+                // OR if we are currently typing out a segment
+                if (backendTranscript === currentStableText || isTyping) {
+                     // If not typing but running, ensure cursor is visible
+                     if (!isTyping && isRunning && typingSpan.find('.typed-cursor').length === 0) {
+                         typingSpan.html('<span class="typed-cursor">|</span>');
+                     }
+                    return;
+                }
+
+                 // Handle the initial message or reset scenarios
+                if (backendTranscript === "(Waiting for speech...)" && currentStableText === "") {
+                     stableSpan.text(""); // Keep stable empty
+                     typingSpan.html('<span class="typed-cursor">|</span>'); // Just show cursor
+                     currentStableText = backendTranscript; // Update state but don't type "(Waiting..)"
+                     return;
+                 }
+
+                 // Calculate the new segment
+                 let textToType = "";
+                 if (currentStableText === "(Waiting for speech...)" && backendTranscript !== "Stopped.") {
+                      // If previous state was waiting, the entire new transcript is the segment
+                     textToType = backendTranscript;
+                 } else if (backendTranscript.startsWith(currentStableText)) {
+                     // Simple append case
+                     textToType = backendTranscript.substring(currentStableText.length);
+                 } else {
+                     // Text diverged (e.g., error, unexpected reset) - display statically for now
+                     console.warn("Transcript divergence detected. Resetting display.");
+                     if (typedInstance) { typedInstance.destroy(); typedInstance = null; isTyping = false; }
+                     currentStableText = backendTranscript;
+                     stableSpan.text(currentStableText); // Display new text directly
+                     typingSpan.html(isRunning ? '<span class="typed-cursor">|</span>' : ''); // Reset typing area / cursor
+                     scrollToBottom();
+                     return; // Don't attempt to type segment
+                 }
+
+                 // Update stable text state *before* starting animation for next comparison
+                 currentStableText = backendTranscript;
+
+                 // Start typing the new segment if running
+                 if (isRunning && textToType.length > 0) {
+                     // Add space logic handled within typeNewSegment's onComplete
+                     typeNewSegment(textToType);
+                 } else if (backendTranscript === "Stopped.") {
+                     // Final static display if stopped
+                     if (typedInstance) { typedInstance.destroy(); typedInstance = null; isTyping = false; }
+                     stableSpan.text(backendTranscript);
+                     typingSpan.text('');
+                 }
+
+
+            }).fail(function() {
+                if(isRunning) {
+                     console.error("Fetch failed. Stopping.");
+                     if (fetchInterval) { clearInterval(fetchInterval); fetchInterval = null; }
+                     if (typedInstance) { typedInstance.destroy(); typedInstance = null; isTyping = false;}
+                     stableSpan.append("\n\n[Connection Error]"); typingSpan.text('');
+                     stopBtn.prop('disabled', true); startBtn.prop('disabled', false); isRunning = false;
+                }
+            });
+        }
+
+        // Initial state
+        stopBtn.prop('disabled', true);
+        stableSpan.text("Press Start to begin transcription...");
+        typingSpan.text('');
+
+     });
+  </script>
+</body>
+</html>

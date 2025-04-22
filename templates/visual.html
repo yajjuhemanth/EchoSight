@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Mode - EchoSight</title> <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="icon" type="image/png" href="static/assets/image.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+         :root {
+            /* Light theme variables */
+            --bg-color-light: linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%); /* Lighter green gradient */
+            --text-color-light: #333;
+            --card-bg-light: rgba(255, 255, 255, 0.65);
+            --border-color-light: rgba(0, 0, 0, 0.1);
+            --heading-color-light: #2c3e50;
+            --control-bg-light: rgba(255, 255, 255, 0.3);
+            --button-back-bg-light: #adb5bd;
+            --button-back-border-light: #adb5bd;
+            --button-back-hover-bg-light: #9fa8b0;
+            --button-back-hover-border-light: #9fa8b0;
+            --caption-text-color-light: #2c3e50; /* Darker text on light bg */
+
+             /* Dark theme variables */
+            --bg-color-dark: linear-gradient(120deg, #374b43 0%, #637e76 100%); /* Dark green/grey gradient */
+            --text-color-dark: #ecf0f1;
+            --card-bg-dark: rgba(0, 0, 0, 0.4);
+            --border-color-dark: rgba(255, 255, 255, 0.1);
+            --heading-color-dark: #f1f1f1;
+            --control-bg-dark: rgba(0, 0, 0, 0.2);
+            --button-back-bg-dark: #7f8c8d;
+            --button-back-border-dark: #7f8c8d;
+            --button-back-hover-bg-dark: #95a5a6;
+            --button-back-hover-border-dark: #95a5a6;
+            --caption-text-color-dark: #e8f5e9; /* Light green text on dark bg */
+
+            /* Default to light mode */
+            --bg-color: var(--bg-color-light);
+            --text-color: var(--text-color-light);
+            --card-bg: var(--card-bg-light);
+            --border-color: var(--border-color-light);
+            --heading-color: var(--heading-color-light);
+            --control-bg: var(--control-bg-light);
+            --button-back-bg: var(--button-back-bg-light);
+            --button-back-border: var(--button-back-border-light);
+            --button-back-hover-bg: var(--button-back-hover-bg-light);
+            --button-back-hover-border: var(--button-back-hover-border-light);
+             --caption-text-color: var(--caption-text-color-light);
+        }
+
+        body.dark-mode {
+            --bg-color: var(--bg-color-dark);
+            --text-color: var(--text-color-dark);
+            --card-bg: var(--card-bg-dark);
+            --border-color: var(--border-color-dark);
+            --heading-color: var(--heading-color-dark);
+            --control-bg: var(--control-bg-dark);
+            --button-back-bg: var(--button-back-bg-dark);
+            --button-back-border: var(--button-back-border-dark);
+            --button-back-hover-bg: var(--button-back-hover-bg-dark);
+            --button-back-hover-border: var(--button-back-hover-border-dark);
+            --caption-text-color: var(--caption-text-color-dark);
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding-top: 1rem; padding-bottom: 1rem; display: flex; flex-direction: column; align-items: center;
+             transition: background 0.3s ease, color 0.3s ease;
+        }
+        .container { max-width: 700px; width: 90%; display: flex; flex-direction: column; align-items: center; }
+
+        /* UPDATED HEADER AREA STYLES */
+        .header-area {
+            width: 100%;
+            position: relative; /* Keep for absolute positioning on larger screens */
+            margin-bottom: 1rem;
+            padding: 0 1rem; /* Add horizontal padding */
+            box-sizing: border-box;
+        }
+        .header-area h1 {
+            color: var(--heading-color);
+            margin-bottom: 0; /* Reset margin */
+            text-align: center; /* Center by default */
+            font-size: 2rem;
+            padding: 0.5rem 0; /* Add vertical padding */
+        }
+        .theme-toggle {
+            position: absolute; /* Default absolute positioning */
+            top: 10px; /* Adjust vertical position */
+            right: 10px; /* Adjust horizontal position */
+            z-index: 5;
+        }
+        /* END UPDATED HEADER AREA STYLES */
+
+        /* Responsive Control Sections */
+        .controls-section, .upload-section {
+            background: var(--control-bg);
+            padding: 0.6rem 0.8rem; /* Adjust padding */
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem; /* Adjust gap */
+            transition: background 0.3s ease;
+        }
+        .controls-section { justify-content: space-between; }
+        .upload-section { justify-content: center; }
+
+        .control-group { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;}
+        .mode-toggle { display: flex; align-items: center; gap: 0.5rem; }
+        .form-switch .form-check-label { padding-left: 0.5rem; font-weight: 500; color: var(--text-color); }
+        .action-buttons .btn, #captureBtn, .upload-section .btn {
+             margin: 0 0.3rem; min-width: 80px; padding: 0.4rem 0.8rem; font-size: 0.9rem;
+        }
+        #captureBtn:disabled { cursor: not-allowed; opacity: 0.6; }
+        .upload-section label { font-weight: 500; color: var(--text-color); margin-bottom: 0; }
+        .upload-section .form-control {
+            max-width: 300px; /* Limit width of file input */
+            display: inline-block;
+            width: auto;
+            font-size: 0.9rem;
+            padding: 0.3rem 0.6rem;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+        #loadingSpinner { display: none; /* Hide initially */ } /* Basic spinner style */
+
+        #caption {
+            background: var(--card-bg); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+            color: var(--caption-text-color); /* Use theme variable */
+            padding: 20px 25px; border-radius: 15px; min-height: 100px;
+            width: 100%; display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; font-weight: 500; text-align: center; line-height: 1.4;
+            border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-top: 1rem; transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            word-wrap: break-word; /* Ensure long captions wrap */
+        }
+
+        .footer-area { margin-top: 1.5rem; padding-bottom: 1rem; }
+        .btn-back {
+            background-color: var(--button-back-bg); border-color: var(--button-back-border); color: white;
+            transition: background-color 0.2s ease, border-color 0.2s ease; padding: 0.4rem 1rem; font-size: 0.9rem;
+        }
+        .btn-back:hover { background-color: var(--button-back-hover-bg); border-color: var(--button-back-hover-border); color: white; }
+
+        /* Responsive adjustments for the header */
+        @media (max-width: 576px) {
+            .header-area {
+                display: flex; /* Use flexbox on small screens */
+                justify-content: space-between; /* Space title and toggle */
+                align-items: center; /* Vertically align */
+                padding: 0.5rem 1rem; /* Adjust padding */
+                position: static; /* Override relative */
+            }
+
+            .header-area h1 {
+                text-align: left; /* Align title left */
+                font-size: 1.5rem; /* Smaller title */
+                flex-grow: 1; /* Allow title to take space */
+                margin-right: 0.5rem; /* Space between title and toggle */
+                padding: 0; /* Reset padding */
+            }
+
+            .theme-toggle {
+                position: static; /* Remove absolute positioning */
+                order: 1; /* Ensure toggle is on the right */
+                flex-shrink: 0; /* Prevent toggle shrinking */
+            }
+        }
+
+        /* Target smaller screens */
+        @media (max-width: 768px) { /* Tablet and below */
+            h1 { font-size: 1.8rem; } /* Already adjusted in header */
+            .controls-section {
+                 flex-direction: column; /* Stack main control groups */
+                 align-items: stretch; /* Stretch groups */
+                 gap: 0.8rem;
+                 margin-top: 0.5rem; /* Add space below adjusted header */
+             }
+             .controls-section .control-group {
+                justify-content: space-between; /* Space items within group */
+             }
+             .controls-section .action-buttons {
+                 display: flex;
+                 justify-content: space-around;
+                 width: 100%;
+             }
+             .controls-section .mode-toggle {
+                 justify-content: center; /* Center the mode toggle */
+                 width: 100%;
+             }
+             #captureBtn {
+                 width: 100%;
+                 margin-top: 0.5rem; /* Add space if it wraps below toggle */
+             }
+
+            .upload-section {
+                flex-direction: column; /* Stack upload elements */
+                align-items: stretch;
+            }
+            .upload-section .form-label {
+                 text-align: center; /* Center label */
+                 margin-bottom: 0.3rem;
+             }
+            .upload-section .form-control {
+                max-width: none; /* Allow input to be full width */
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            .upload-section form { /* Target the form directly */
+                 flex-direction: column;
+                 align-items: stretch;
+                 width: 100%;
+             }
+             .upload-section .btn {
+                 width: 100%; /* Make button full width */
+             }
+
+            #caption {
+                font-size: 1.2rem; /* Adjust caption font size */
+                padding: 15px 20px;
+                min-height: 80px; /* Adjust min-height */
+            }
+        }
+
+         @media (max-width: 480px) { /* Smaller mobile */
+             h1 { font-size: 1.5rem; } /* Already adjusted in header */
+             .action-buttons .btn, #captureBtn, .upload-section .btn {
+                 font-size: 0.85rem; /* Smaller button text */
+                 padding: 0.3rem 0.6rem;
+             }
+             #caption {
+                 font-size: 1.1rem;
+                 min-height: 60px;
+             }
+         }
+    </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header-area">
+        <h1 class="animate__animated animate__fadeInDown">Visual Mode</h1>
+        <div class="form-check form-switch theme-toggle">
+            <input class="form-check-input" type="checkbox" role="switch" id="themeSwitch">
+            <label class="form-check-label" for="themeSwitch">Dark Mode</label>
+        </div>
+    </div>
+
+    <div class="controls-section animate__animated animate__fadeInUp">
+        <div class="control-group action-buttons">
+            <span class="me-2 fw-bold" style="color: var(--heading-color);">Webcam:</span>
+            <button id="startBtn" class="btn btn-success">Start</button>
+            <button id="stopBtn" class="btn btn-danger">Stop</button>
+        </div>
+        <div class="control-group">
+            <div class="form-check form-switch mode-toggle">
+              <input class="form-check-input" type="checkbox" role="switch" id="modeSwitch" checked>
+              <label class="form-check-label" for="modeSwitch">Continuous</label>
+            </div>
+            <button id="captureBtn" class="btn btn-primary" disabled>Describe Frame</button>
+        </div>
+    </div>
+
+    <div class="upload-section animate__animated animate__fadeInUp animate__delay-1s">
+         <form id="uploadForm" enctype="multipart/form-data" class="d-flex align-items-center gap-2 flex-wrap justify-content-center w-100">
+            <label for="imageFile" class="form-label mb-0 fw-bold" style="color: var(--heading-color);">Upload Image:</label>
+            <input class="form-control form-control-sm" type="file" id="imageFile" name="imageFile" accept="image/png, image/jpeg, image/gif, image/webp">
+            <button type="submit" class="btn btn-info btn-sm">Describe Upload</button>
+            <div id="loadingSpinner" class="spinner-border spinner-border-sm text-info" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+         </form>
+    </div>
+
+
+    <div id="caption" class="animate__animated animate__fadeIn animate__delay-2s">
+        Ready for webcam or upload
+    </div>
+
+    <div class="footer-area">
+      <a href="/" class="btn btn-back btn-sm">Back to Main</a>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  <script>
+     // JavaScript remains the same as in the file provided
+     $(document).ready(function(){
+        let fetchInterval = null;
+        let lastDisplayedCaption = "";
+        const captionDiv = $("#caption");
+        const startBtn = $("#startBtn");
+        const stopBtn = $("#stopBtn");
+        const modeSwitch = $("#modeSwitch");
+        const captureBtn = $("#captureBtn");
+        const uploadForm = $("#uploadForm");
+        const imageFileInput = $("#imageFile");
+        const uploadSubmitBtn = uploadForm.find('button[type="submit"]');
+        const loadingSpinner = $("#loadingSpinner");
+
+        let isContinuousMode = true; // For webcam
+        let isRunning = false; // Tracks if webcam/TTS background process is active
+
+        // --- Dark Mode Logic ---
+        const themeSwitch = $('#themeSwitch');
+        const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
+        if (currentTheme) { $('body').addClass(currentTheme); if (currentTheme === 'dark-mode') { themeSwitch.prop('checked', true); } }
+        themeSwitch.on('change', function() {
+            if($(this).is(':checked')) { $('body').addClass('dark-mode').removeClass('light-mode'); localStorage.setItem('theme', 'dark-mode'); }
+            else { $('body').removeClass('dark-mode').addClass('light-mode'); localStorage.setItem('theme', 'light-mode'); }
+        });
+        // --- End Dark Mode Logic ---
+
+        function updateButtonStates() {
+            // Webcam controls depend on isRunning state
+            startBtn.prop('disabled', isRunning);
+            stopBtn.prop('disabled', !isRunning);
+            modeSwitch.prop('disabled', isRunning); // Disable mode switch while webcam runs
+             // Capture button enabled only in single frame mode AND when running
+            captureBtn.prop('disabled', isContinuousMode || !isRunning);
+
+             // Upload button state is independent of webcam state (for now)
+             // You might want to disable upload while webcam is running if resources are limited
+             // uploadSubmitBtn.prop('disabled', isRunning); // Optional: disable during webcam
+        }
+
+        // --- Webcam Control Logic ---
+        startBtn.click(function(){
+            console.log("Start visual (webcam) clicked");
+            isRunning = true; updateButtonStates();
+            captionDiv.text("Starting Webcam..."); lastDisplayedCaption = "Starting Webcam...";
+            $.post("/visual/start", function(data){
+                if (data.status === "started" || data.status === "already_running") {
+                    captionDiv.text("Webcam Running..."); lastDisplayedCaption = "Webcam Running...";
+                    // Start polling ONLY if not already polling
+                    if (!fetchInterval) {
+                        fetchInterval = setInterval(fetchCaption, 1500); // Poll every 1.5 seconds
+                    }
+                } else {
+                    captionDiv.text(data.message || "Error starting webcam.");
+                    isRunning = false; updateButtonStates();
+                }
+            }).fail(function() {
+                captionDiv.text("Error starting webcam request.");
+                isRunning = false; updateButtonStates();
+            });
+        });
+
+        stopBtn.click(function(){
+            console.log("Stop visual (webcam/TTS) clicked");
+            isRunning = false; // Assume stop affects everything for now
+            updateButtonStates();
+            // Stop polling immediately
+            if (fetchInterval) { clearInterval(fetchInterval); fetchInterval = null; }
+
+            $.post("/visual/stop", function(data){
+                console.log("Stop response:", data);
+                captionDiv.text("Stopped."); // Set final state
+                lastDisplayedCaption = "Stopped.";
+            }).fail(function() {
+                captionDiv.text("Error stopping. Status uncertain.");
+                // Re-enable stop button maybe? Or force refresh?
+                // updateButtonStates(); // Might re-enable start if stop failed
+            });
+        });
+
+        modeSwitch.change(function() {
+            isContinuousMode = $(this).is(':checked');
+            const mode = isContinuousMode ? 'continuous' : 'single';
+            console.log("Webcam mode changed to:", mode);
+            $(this).next('.form-check-label').text(isContinuousMode ? 'Continuous' : 'Single Frame');
+            // Only send update if webcam is actually running? Or allow setting anytime?
+            // For simplicity, allow setting anytime, backend handles logic.
+             $.post(`/visual/set_mode/${mode}`, function(data){
+                 console.log("Set mode response:", data);
+                 updateButtonStates(); // Update capture button state
+             }).fail(function() {
+                 console.error("Failed to set mode.");
+                 // Optionally revert UI?
+             });
+            updateButtonStates(); // Update capture button state immediately
+        });
+
+        captureBtn.click(function() {
+            if (!isContinuousMode && isRunning) {
+                console.log("Capture single webcam frame clicked");
+                captionDiv.text("Capturing webcam frame...");
+                lastDisplayedCaption = "Capturing webcam frame...";
+                 $.post("/visual/capture_single", function(data){
+                     if(data.status !== "capture_submitted") {
+                         captionDiv.text(data.message || "Capture failed.");
+                         lastDisplayedCaption = captionDiv.text();
+                     } else {
+                         captionDiv.text("Processing webcam frame...");
+                         lastDisplayedCaption = "Processing webcam frame...";
+                          // Start polling if not already started (e.g., if user starts in single mode)
+                          if (!fetchInterval) {
+                            fetchInterval = setInterval(fetchCaption, 1500);
+                         }
+                     }
+                 }).fail(function() {
+                     captionDiv.text("Error capture request.");
+                     lastDisplayedCaption = captionDiv.text();
+                 });
+            }
+        });
+
+        // --- Upload Form Logic ---
+        uploadForm.submit(function(event) {
+            event.preventDefault(); // Prevent default form submission
+            console.log("Upload form submitted");
+
+            const file = imageFileInput[0].files[0];
+            if (!file) {
+                captionDiv.text("Please select an image file first.");
+                lastDisplayedCaption = captionDiv.text();
+                return;
+            }
+
+            const formData = new FormData(this);
+
+            // Show spinner, disable button
+            loadingSpinner.show();
+            uploadSubmitBtn.prop('disabled', true);
+            captionDiv.text("Uploading and processing..."); // Update status
+            lastDisplayedCaption = "Uploading and processing...";
+
+            $.ajax({
+                url: '/visual/upload', // Your Flask endpoint
+                type: 'POST',
+                data: formData,
+                processData: false, // Prevent jQuery from processing the data
+                contentType: false, // Prevent jQuery from setting contentType
+                success: function(data) {
+                    console.log("Upload response:", data);
+                    if (data.status === "upload_submitted") {
+                        captionDiv.text("Processing uploaded image..."); // Backend is processing
+                        lastDisplayedCaption = "Processing uploaded image...";
+                        // Start polling if not already started
+                         if (!fetchInterval) {
+                            fetchInterval = setInterval(fetchCaption, 1500);
+                         }
+                    } else {
+                        captionDiv.text(data.message || "Upload failed.");
+                        lastDisplayedCaption = captionDiv.text();
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("Upload error:", textStatus, errorThrown);
+                     let errorMsg = "Upload request failed.";
+                     if(jqXHR.responseJSON && jqXHR.responseJSON.message) {
+                         errorMsg = jqXHR.responseJSON.message;
+                     }
+                    captionDiv.text(errorMsg);
+                    lastDisplayedCaption = errorMsg;
+                },
+                complete: function() {
+                    // Hide spinner, re-enable button
+                    loadingSpinner.hide();
+                    uploadSubmitBtn.prop('disabled', false);
+                    imageFileInput.val(''); // Clear file input
+                }
+            });
+        });
+
+
+        // --- Caption Fetching ---
+        function fetchCaption() {
+            // Don't fetch if nothing is supposed to be running or processing
+            // Check isRunning OR if caption indicates processing an upload
+            const isProcessingUpload = captionDiv.text().toLowerCase().includes("processing uploaded image");
+            // Removed redundant check from original js, polling should continue if started.
+
+            $.get("/visual/caption", function(data) {
+                const currentCaption = data.caption;
+                 // Update only if the caption has changed from the last displayed one
+                 if (currentCaption && currentCaption !== lastDisplayedCaption) {
+                     // Check if the new caption is an error/status or a real description
+                      const isStatusMessage = currentCaption.startsWith("[") ||
+                                              ["Starting Webcam...", "Webcam Running...", "Stopped.",
+                                               "Processing single webcam frame...", "Processing uploaded image...",
+                                                "Ready for webcam or upload", // Added initial state
+                                                "Capturing webcam frame..." // Added intermediate state
+                                              ].includes(currentCaption);
+
+                     // If backend says stopped, update and potentially stop polling
+                      if (currentCaption === "Stopped.") {
+                         captionDiv.text(currentCaption);
+                         lastDisplayedCaption = currentCaption;
+                         isRunning = false; // Update state
+                         updateButtonStates();
+                         if (fetchInterval) { clearInterval(fetchInterval); fetchInterval = null; } // Stop polling on explicit stop
+                     }
+                     // Otherwise, display the new caption
+                     else {
+                         captionDiv.text(currentCaption);
+                         lastDisplayedCaption = currentCaption;
+                         // If we received a final caption after processing, update state if needed
+                         if (lastDisplayedCaption.toLowerCase().includes("processing") && !isStatusMessage) {
+                             console.log("Processing seems complete, received caption.");
+                             // If it was an upload (webcam isn't running), clear the processing state visually
+                             if(!isRunning) {
+                                 // No explicit action needed, caption is updated.
+                             }
+                         }
+                     }
+                 }
+            }).fail(function() {
+                // Don't stop polling on a single fail, could be transient
+                console.warn("Failed to fetch caption.");
+                // Maybe display a temporary connection error?
+                // captionDiv.text("[Error fetching status]");
+            });
+        }
+
+        // Initial setup
+        updateButtonStates(); // Set initial button states
+        modeSwitch.next('.form-check-label').text('Continuous'); // Set initial label
+        captionDiv.text("Ready for webcam or upload"); // Set initial caption
+        lastDisplayedCaption = captionDiv.text();
+
+        // Optionally start polling immediately if you want to show initial state from backend
+        // fetchInterval = setInterval(fetchCaption, 1500); // Start polling if desired
+
+     });
+  </script>
+</body>
+</html>
