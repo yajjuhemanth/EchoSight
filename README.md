@@ -37,8 +37,7 @@ A multimodal Flask application that provides real-time speech recognition and im
    pip install -r requirements.txt
    ```
 
-3. Download the face detection model:
-   The application includes `haarcascade_frontalface_default.xml` for basic face detection.
+
 
 ## Usage
 
