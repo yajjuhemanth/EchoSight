@@ -32,12 +32,25 @@ A multimodal Flask application that provides real-time speech recognition and im
    cd echosight
    ```
 
-2. Install dependencies:
+2. Create and activate a virtual environment (recommended):
+   ```
+   # Windows
+   python -m venv venv
+   venv\Scripts\activate
+
+   # Linux/macOS
+   python -m venv venv
+   source venv/bin/activate
+   ```
+
+3. Install dependencies:
    ```
    pip install -r requirements.txt
    ```
 
-
+4. Models:
+   - The BLIP image captioning model (`Salesforce/blip-image-captioning-base`) will be automatically downloaded on first use of the visual mode
+ 
 
 ## Usage
 
@@ -51,6 +64,12 @@ A multimodal Flask application that provides real-time speech recognition and im
 3. Choose between Hearing Mode and Visual Mode:
    - **Hearing Mode**: Transcribes speech in real-time
    - **Visual Mode**: Captions images from webcam or uploads
+
+### First Run
+- When you first use the Visual Mode, the application will download the BLIP model (~1GB)
+- This download only happens once, after which the model is cached locally
+- The download might take several minutes depending on your internet connection
+- Progress will be displayed in the terminal
 
 ## Technical Details
 
